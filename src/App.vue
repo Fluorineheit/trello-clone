@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import draggable from 'vuedraggable';
+import ModalDialog from './components/ModalDialog.vue';
+import type { List } from './types';
 
-interface Card {
-  id: number
-  title: string
-  description: string
-}
 
-interface List {
-  id: number;
-  title: string;
-  cards: Card[]
-}
 
-const lists = reactive < List[] > ([
+const lists = reactive<List[]>([
   {
     id: 1,
     title: 'To Do',
@@ -47,9 +39,9 @@ const lists = reactive < List[] > ([
       <div :key="list.id" v-for="list in lists" class="bg-gray-100 p-5 rounded-lg min-w-[250px] flex flex-col">
         <h2 class="font-medium text-md text-gray-500">{{ list.title }}</h2>
         <draggable group="cards" :list="list.cards">
-          <template #item="{element}">
+          <template #item="{ element }">
             <div class="bg-white p-3 my-2 rounded cursor-pointer">
-              <span class="text-md font-medium">{{element.title}}</span>
+              <span class="text-md font-medium">{{ element.title }}</span>
               <p class="text-sm text-gray-500">{{ element.description }}</p>
             </div>
           </template>
@@ -60,5 +52,6 @@ const lists = reactive < List[] > ([
         </button>
       </div>
     </div>
+    <!-- <ModalDialog /> -->
   </main>
 </template>

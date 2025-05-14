@@ -3,7 +3,6 @@ import { reactive, ref } from 'vue';
 import draggable from 'vuedraggable';
 import ModalDialog from './components/ModalDialog.vue';
 import type { List } from './types';
-
 const isModalOpen = ref(false)
 
 const openModal = () => {
@@ -11,6 +10,7 @@ const openModal = () => {
 }
 
 const closeModal = () => {
+  console.log('close modal')
   isModalOpen.value = false
 }
 

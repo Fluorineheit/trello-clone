@@ -74,13 +74,13 @@ const closeModal = () => {
 </script>
 
 <template>
-  <main class="p-5 font-sans">
+  <main class="p-5 font-sans bg-[url(../public/bg.webp)] bg-cover bg-center min-h-screen ">
     <div class="flex gap-5 py-5 overflow-x-auto">
       <div
         :key="list.id"
         v-for="(list, listIndex) in lists"
-        class="bg-gray-100 p-5 rounded-lg max-h-[95vh] min-w-[250px] flex flex-col"
-        :style="{ minHeight: `${Math.max(250, list.cards.length * 90)}px` }"
+        class="bg-gray-100 p-5 rounded-lg max-h-[87vh] w-[280px] flex flex-col"
+
       >
         <h2 class="font-medium text-md text-gray-500">{{ list.title }}</h2>
         <draggable
@@ -91,7 +91,10 @@ const closeModal = () => {
           class="flex flex-col h-[100%] overflow-y-auto bor"
         >
           <template #item="{ element }">
-            <div @click="openModal(listIndex, element)" class="bg-white p-3 my-2 rounded cursor-pointer">
+            <div @click="openModal(listIndex, element)"
+              class="bg-white p-3 my-2 rounded cursor-pointer break-all"
+              :style="{ backgroundColor: element.color  }"
+            >
               <span class="text-md font-medium">{{ element.title }}</span>
               <p class="text-sm text-gray-500">{{ element.description }}</p>
             </div>

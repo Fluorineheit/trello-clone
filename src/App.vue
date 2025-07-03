@@ -2,8 +2,9 @@
 import draggable from 'vuedraggable'
 import ModalDialog from './components/ModalDialog.vue'
 import { useBoardStore } from './stores/boardStores'
+import { Clock } from 'lucide-vue-next'
 // import type { Card, List } from './types'
-
+import { dateFormat } from './utils/dateFormat'
 
 const boardStore = useBoardStore()
 
@@ -102,16 +103,21 @@ const boardStore = useBoardStore()
   <main class="p-5 font-sans bg-[url(../bg.webp)] bg-cover bg-center min-h-screen ">
     <div class="flex gap-5 py-5 overflow-x-auto">
       <div :key="list.id" v-for="list in boardStore.lists"
-        class="bg-gray-100 p-5 rounded-lg max-h-[87vh] w-[280px] flex flex-col">
+        class="bg-gray-100 p-5 rounded-lg max-h-[90vh] w-[280px] flex flex-col">
         <h2 class="font-medium text-md text-gray-500">{{ list.title }}</h2>
         <draggable group="cards" :list="list.cards" item-key="id" :animation="200"
           class="flex flex-col h-[100%] overflow-y-auto bor">
           <template #item="{ element }">
             <div @click="boardStore.openModal(list.id, element.id)" class="bg-white p-3 my-2 rounded cursor-pointer break-all"
               :style="{ backgroundColor: element.color }">
-              <span class="text-md font-medium">{{ element.title }}</span>
-              <p class="text-sm text-gray-500">{{ element.description.length > 60 ? element.description.substring(0, 60) +
+              <span class="text-md font-medium text-gray-600">{{ element.title }}</span>
+              <p class="text-sm text-gray-400">{{ element.description.length > 60 ? element.description.substring(0, 60) +
                 '...' : element.description }}</p>
+                <div v-if="element.dueDate" class="flex w-fit flex-row items-center gap-2 text-sm text-gray-700 mt-1 bg-gray-200 p-1 rounded" :class="{ 'bg-red-200 text-red-700': new Date(element.dueDate) <= new Date()
+              }">
+                  <Clock class="w-4 h-4" />
+                  <span>{{ dateFormat(new Date(element.dueDate), 'd-m') }}</span>
+                </div>
             </div>
           </template>
         </draggable>

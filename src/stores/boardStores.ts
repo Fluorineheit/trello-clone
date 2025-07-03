@@ -8,7 +8,7 @@ export const useBoardStore = defineStore('board', {
         id: 1,
         title: 'To Do',
         cards: [
-          { id: 1, title: 'Tugas 1', description: 'Deskripsi tugas 1', color: '#ffffff' },
+          { id: 1, title: 'Tugas 1', description: 'Deskripsi tugas 1', color: '#ffffff', dueDate: '2023-10-01T14:30:00' },
           { id: 2, title: 'Tugas 6', description: 'Deskripsi tugas 1', color: '#ffffff' },
         ],
       },

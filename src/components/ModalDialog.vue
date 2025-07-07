@@ -13,7 +13,6 @@ const boardStore = useBoardStore()
 const localCard = ref<Partial<Card>>({})
 const localDescription = ref('')
 
-// State for modal and form
 const titleTextarea = ref<HTMLTextAreaElement | null>(null)
 const isDatePickerOpen = ref(false)
 const isColorPickerOpen = ref(false)
@@ -37,7 +36,6 @@ const colors = [
   { name: 'Blue', hex: '#bfdbfe', class: 'bg-blue-200' },
   { name: 'Red', hex: '#fecaca', class: 'bg-red-200' },
   { name: 'White', hex: '#ffffff', class: 'bg-white border' },
-  {name: 'black', hex: '#172b4d', class: 'bg-[#172b4d]'}
 ];
 
 
@@ -124,6 +122,7 @@ watch(isDatePickerOpen, (isOpen) => {
         @input="boardStore.editingCard && boardStore.updateCard({ id: boardStore.editingCard.id, title: ($event.target as HTMLTextAreaElement).value })"
         ref="titleTextarea" placeholder="Title" rows="1"
         class="w-full p-2 mb-2 rounded font-medium text-lg focus:outline-none resize-none overflow-hidden">
+
       </textarea>
       <div class="flex flex-row justify-start align-middle items-center mb-2 gap-2">
         <button v-if="localCard.dueDate" @click="isDatePickerOpen = !isDatePickerOpen">

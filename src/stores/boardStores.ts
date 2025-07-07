@@ -24,6 +24,8 @@ export const useBoardStore = defineStore('board', {
       },
     ] as List[],
 
+    searchQuery: '',
+
     isModalOpen: false,
     editingCardIndex: null as number | null,
     editingListIndex: null as number | null,
@@ -40,6 +42,21 @@ export const useBoardStore = defineStore('board', {
 
     modalMode(state): 'add' | 'edit' {
       return state.editingCardIndex !== null ? 'edit' : 'add'
+    },
+
+    searchCards(state): {card: Card, listId: number}[] {
+      if(!state.searchQuery) {
+        return []
+      }
+      const query = state.searchQuery.toLowerCase()
+      return state.lists.flatMap(list =>
+        list.cards
+          .filter((card) => card.title.toLowerCase().includes(query))
+          .map((card) => ({
+            card: card,
+            listId: list.id
+          }))
+      )
     },
   },
 

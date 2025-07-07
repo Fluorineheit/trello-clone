@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import ModalDialog from './components/ModalDialog.vue'
+import NavBar from './components/NavBar.vue'
 import { useBoardStore } from './stores/boardStores'
 import { Clock } from 'lucide-vue-next'
 // import type { Card, List } from './types'
@@ -100,8 +101,9 @@ const boardStore = useBoardStore()
 </script>
 
 <template>
-  <main class="p-5 font-sans bg-[url(../bg.webp)] bg-cover bg-center min-h-screen ">
-    <div class="flex gap-5 py-5 overflow-x-auto">
+  <NavBar />
+  <main class="p-5 font-sans bg-[url(../bg.webp)] bg-cover bg-center min-h-screen">
+    <div class="flex gap-5 py-5 overflow-x-auto mt-10">
       <div :key="list.id" v-for="list in boardStore.lists"
         class="bg-gray-100 p-5 rounded-lg max-h-[90vh] w-[280px] flex flex-col">
         <h2 class="font-medium text-md text-gray-500">{{ list.title }}</h2>

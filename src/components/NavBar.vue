@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next';
 import { useBoardStore } from '@/stores/boardStores';
-
+import { onClickOutside } from '@vueuse/core'
+import { ref } from 'vue';
 
 const boardStore = useBoardStore();
+const searchPanel = ref(null)
+
+onClickOutside(searchPanel, ()=>{
+  boardStore.searchQuery = ''
+})
+
 </script>
 
 <template>
@@ -11,7 +18,7 @@ const boardStore = useBoardStore();
     <div class="font-bold text-xl">Trello Clone</div>
     <form class="max-w-md w-[40%] mx-auto">
       <label for="card-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"></label>
-      <div class="relative">
+      <div class="relative" ref="searchPanel">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
           <Search class="w-5 h-5 text-gray-500" />
         </div>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { List, Card } from '@/types'
+import type { List, Card, Label } from '@/types'
+
 
 export const useBoardStore = defineStore('board', {
   state: () => ({
@@ -8,23 +9,30 @@ export const useBoardStore = defineStore('board', {
         id: 1,
         title: 'To Do',
         cards: [
-          { id: 1, title: 'Tugas 1', description: 'Deskripsi tugas 1', color: '#ffffff', dueDate: '2023-10-01T14:30:00' },
-          { id: 2, title: 'Tugas 6', description: 'Deskripsi tugas 1', color: '#ffffff' },
+          { id: 1, title: 'Tugas 1', description: 'Deskripsi tugas 1', color:'#fefcbf', labelIds: [2, 3], dueDate: '2023-10-01T14:30:00' },
+          { id: 2, title: 'Tugas 6', description: 'Deskripsi tugas 1',  labelIds: [2, 3] },
         ],
       },
       {
         id: 2,
         title: 'In Progress',
-        cards: [{ id: 7, title: 'Tugas 2', description: 'Deskripsi tugas 2', color: '#ffffff' }],
+        cards: [{ id: 7, title: 'Tugas 2', description: 'Deskripsi tugas 2', labelIds: [2, 3] }],
       },
       {
         id: 3,
         title: 'Done',
-        cards: [{ id: 8, title: 'Tugas 3', description: 'Deskripsi tugas 3', color: '#ffffff' }],
+        cards: [{ id: 8, title: 'Tugas 3', description: 'Deskripsi tugas 3', labelIds: [2, 3] }],
       },
     ] as List[],
 
     searchQuery: '',
+
+    labels: [
+      { id: 1, name: 'Feature', color: '#bfdbfe' },
+      { id: 2, name: 'Bug', color: '#fecaca' },
+      { id: 3, name: 'Urgent', color: '#fefcbf' },
+    ] as Label[],
+
 
     isModalOpen: false,
     editingCardIndex: null as number | null,
@@ -95,5 +103,53 @@ export const useBoardStore = defineStore('board', {
         list.cards.push({ ...newCard, id: newId })
       }
     },
+
+    assignLabelToCard(cardId: number, labelId: number){
+      for(const list of this.lists){
+        const card = list.cards.find(c => c.id === cardId)
+        if (card) {
+          if(!card.labelIds?.includes(labelId)){
+            card.labelIds = [];
+          } else {
+            card.labelIds?.push(labelId)
+          }
+          return
+        }
+      }
+    },
+
+    unassignedLabelFromCard(cardId: number, labelId: number){
+      for(const list of this.lists){
+        const card = list.cards.find(c => c.id === cardId)
+        if (card && Array.isArray(card.labelIds)) {
+          const index = card.labelIds.indexOf(labelId)
+            if (index !== -1) {
+              card.labelIds.splice(index, 1)
+            }
+            return
+        }
+      }
+    },
+
+    createlabel(labelData: { name: string, color: string }){
+      const existingIds = this.labels.map(l=>l.id)
+
+      const highestId = Math.max(0, ...existingIds)
+
+      const newLabel = {
+        id: highestId + 1,
+        name: labelData.name,
+        color: labelData.color
+      }
+
+      this.labels.push(newLabel)
+    },
+
+    updateLabel(updatedLabels: Label){
+      const index = this.labels.findIndex(l => l.id === updatedLabels.id)
+      if(index !== -1){
+        this.labels[index] = updatedLabels;
+      }
+    }
   },
 })

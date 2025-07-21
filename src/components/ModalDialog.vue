@@ -2,7 +2,7 @@
 import { ref, watch, nextTick, computed } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import type { Card, Label } from '@/types';
-import { ChevronLeftIcon, Clock, Palette, Pencil, Tag } from 'lucide-vue-next';
+import { AlignLeft, ChevronLeftIcon, Clock, Palette, Pencil, Tag, User } from 'lucide-vue-next';
 import { useBoardStore } from '@/stores/boardStores';
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap';
 import VueDatePicker from '@vuepic/vue-datepicker';
@@ -30,6 +30,8 @@ import type { DatePickerInstance } from "@vuepic/vue-datepicker"
 const datePickerRef = ref<DatePickerInstance>(null);
 const previousTitle = ref('')
 
+
+
 // state for pop ups
 const isLabelsPanelOpen = ref(false)
 const labelsPickerPanel = ref(null)
@@ -52,12 +54,11 @@ const labelModal = ref<HTMLElement | null>(null)
 const checkLabelsOverflow = () => {
   if (labelModal.value) {
     const viewportHeight = window.innerHeight
-    const modalHeight = labelModal.value.scrollHeight
-    isLabelsOverflowing.value = modalHeight >= viewportHeight - 40
+    const modalHeight = labelModal.value.getBoundingClientRect()
+    isLabelsOverflowing.value = modalHeight.bottom >= viewportHeight - 40
     console.log(viewportHeight, modalHeight, isLabelsOverflowing.value)
   }
 }
-
 
 watch(() => isLabelsPanelOpen.value, async (val) => {
   if (val) {
@@ -162,6 +163,40 @@ function handleLabelSave() {
   newLabel.value = { name: '', color: '' };
 }
 
+// comments
+const newCommentText = ref('');
+const editingCommentId = ref<number | null>(null)
+const editingCommentText = ref('')
+
+function handleSaveComment() {
+  if (newCommentText.value.trim() && boardStore.editingCard) {
+    boardStore.addComment({
+      cardId: boardStore.editingCard.id,
+      text: newCommentText.value
+    })
+  }
+
+  newCommentText.value = ''
+}
+
+function startEditComment(comment: { id: number; cardId: number; text: string; time: string }) {
+  console.log(comment.id)
+  editingCommentId.value = comment.id;
+  editingCommentText.value = comment.text;
+}
+
+function handleUpdateComment(){
+  console.log("haha")
+  if (editingCommentId.value === null) {
+    return;
+  }
+
+  boardStore.editComment(editingCommentId.value, editingCommentText.value)
+
+  editingCommentId.value = null;
+  editingCommentText.value = '';
+}
+
 // Watcher to initialize the main modal state when it opens
 watch(() => boardStore.isModalOpen, async (isOpen) => {
   if (isOpen) {
@@ -204,7 +239,6 @@ function saveChanges() {
 
   if (boardStore.editingCard) {
     boardStore.updateCard({ id: boardStore.editingCard.id, title: localCard.value.title, description: localCard.value.description, color: localCard.value.color, dueDate: localCard.value.dueDate });
-    console.log(localCard.value.dueDate);
   } else {
     if (localCard.value.title) {
       boardStore.addCard(localCard.value as Card);
@@ -222,7 +256,6 @@ function toggleLabel(labelId: number) {
   }
 }
 
-
 // State for sidepanel
 onClickOutside(datePickerPanel, () => isDatePickerOpen.value = false)
 onClickOutside(colorPickerPanel, () => isColorPickerOpen.value = false)
@@ -235,20 +268,8 @@ const colors = [
   { name: 'White', hex: '#ffffff', class: 'bg-white border' },
 ];
 
-// function manualSave(){
-//   if (boardStore.editingCard) {
-//     boardStore.updateCard({ id: boardStore.editingCard.id, description: localDescription.value });
-//   } else {
-//     boardStore.addCard({ ...localCard.value, description: localDescription.value } as Card);
-//   }
-//   console.log('Manual save:', localCard.value);
-//   boardStore.closeModal();
-// }
-
-
 watch(isDatePickerOpen, (isOpen) => {
   if (!datePickerPanel.value) return;
-  console.log('datepicker value:', localCard.value.dueDate);
   if (isOpen) {
     nextTick(() => {
       datePickerRef.value?.openMenu();
@@ -264,43 +285,22 @@ watch(isDatePickerOpen, (isOpen) => {
 <template>
   <div ref="targetModal" v-if="boardStore.isModalOpen" @keydown.esc="saveChanges"
     class="fixed inset-0 bg-black/30 flex items-center justify-center">
-    <div ref="targetCardModal" class="bg-white p-5 rounded max-w-md w-full">
-      <!-- title -->
-      <textarea v-model="localCard.title"
-        @input="boardStore.editingCard && boardStore.updateCard({ id: boardStore.editingCard.id, title: ($event.target as HTMLTextAreaElement).value })"
-        ref="titleTextarea" placeholder="Title" rows="1"
-        class="w-full p-2 mb-2 rounded font-medium text-lg focus:outline-none resize-none overflow-hidden">
-
-      </textarea>
-      <div class="flex flex-row justify-start align-middle items-center mb-2 gap-2">
-        <button v-if="localCard.dueDate" @click="isDatePickerOpen = !isDatePickerOpen">
-          <!-- <div v-if="isDatePickerOpen"> -->
-          <VueDatePicker teleport-center :action-row="{ showNow: true, showCancel: false }" now-button-label="Current"
-            :format="dateFormat" ref="datePickerRef" :clearable="false" v-model="localCard.dueDate" class="w-full" />
-          <!-- </div> -->
-        </button>
-        <div>c</div>
-      </div>
-      <div class="flex flex-row justify-between items-top mb-4 gap-4">
-        <div class="w-2/3 flex flex-col gap-4">
-          <!-- desc -->
-          <!-- <textarea v-model="localCard.description" placeholder="Description" rows="5"
-            class="w-full p-2 bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </textarea> -->
-          <textarea v-model="localCard.description" placeholder="Description"
-            class="w-full p-2 my-2 border rounded resize-none min-h-20"></textarea>
-
-          <!-- <div class="flex justify-end gap-2">
-            <button @click="saveChanges"
-              class="bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-700">
-              {{ boardStore.modalMode === 'add' ? 'Add Card' : 'Save' }}
-            </button>
-          </div> -->
-        </div>
-
-        <!-- right -->
-        <div class="w-1/3">
-          <div class="flex flex-col gap-2">
+    <div ref="targetCardModal" class="bg-white p-5 rounded max-w-5xl h-[80vh] justify-between w-full flex flex-row">
+      <!-- left -->
+      <div class="w-2/3 flex flex-col gap-2">
+        <!-- title -->
+        <textarea v-model="localCard.title"
+          @input="boardStore.editingCard && boardStore.updateCard({ id: boardStore.editingCard.id, title: ($event.target as HTMLTextAreaElement).value })"
+          ref="titleTextarea" placeholder="Title" rows="1"
+          class="field-sizing-content max-w-[40vw] resize-none p-2 mb-2 rounded font-medium text-3xl focus:outline-3 focus:outline-blue-400">
+          </textarea>
+        <div class="flex flex-row justify-start align-middle items-center mb-2 gap-2">
+          <!-- datepicker if true -->
+          <button v-if="localCard.dueDate" @click="isDatePickerOpen = !isDatePickerOpen">
+            <VueDatePicker teleport-center :action-row="{ showNow: true, showCancel: false }" now-button-label="Current"
+              :format="dateFormat" ref="datePickerRef" :clearable="false" v-model="localCard.dueDate" class="w-full" />
+          </button>
+          <div class="flex flex-row gap-2">
             <!-- color -->
             <div class="relative" ref="colorPickerPanel">
               <button @click="isColorPickerOpen = !isColorPickerOpen"
@@ -309,7 +309,7 @@ watch(isDatePickerOpen, (isOpen) => {
                   <Palette class="w-5 h-5" />
                   Color
                 </div>
-                <span class="w-8 h-6 bg-amber-200 justify-self-end"
+                <span class="w-8 h-6 ml-2 bg-amber-200 justify-self-end"
                   :style="{ backgroundColor: localCard.color || '#ffffff' }"></span>
               </button>
               <div v-if="isColorPickerOpen" class="absolute z-10 w-full mt-1 bg-white p-2 border rounded shadow-lg">
@@ -339,15 +339,13 @@ watch(isDatePickerOpen, (isOpen) => {
 
             <!-- labels -->
             <div class="relative" ref="labelsPickerPanel">
-
               <button @click="isLabelsPanelOpen = !isLabelsPanelOpen"
                 class="w-full max-h-[450px] bg-gray-200 hover:bg-gray-300 p-2 rounded text-left flex items-center gap-2">
                 <Tag class="w-5 h-5" />Labels
               </button>
 
               <div ref="labelModal" v-if="isLabelsPanelOpen"
-              class="absolute z-10 w-80 bg-white p-4 overflow-y-auto border rounded shadow-lg"
-              >
+                class="absolute  z-10 max-h-100 w-80 bg-white p-4 overflow-y-auto border rounded shadow-lg mt-auto mb-4">
                 <div v-if="labelPanelView === 'list'">
                   <input class="block w-full p-1 text-sm text-gray-900 border-2 mb-2 border-gray-500 " type="text"
                     v-model="labelSearchQuery">
@@ -396,6 +394,74 @@ watch(isDatePickerOpen, (isOpen) => {
                   @click="handleLabelSave()">
                   Create
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="(localCard.labelIds && localCard.labelIds.length > 0)">
+          <div class="flex flex-row items-center gap-2">
+            <AlignLeft class="w-5 h-5 text-center text-gray-700" />
+            <span class="font-medium text-gray-700">Labels</span>
+          </div>
+          <div class="flex flex-row gap-2 my-2 ">
+            <div v-for="label in filteredLabels" :key="label.id">
+              <span class="w-full h-9 rounded py-1 px-2 text-gray-700 font-medium align-middle text-center"
+                :style="{ backgroundColor: label.color }">
+                {{ label.name }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- desc -->
+        <div class="w-2/3 flex flex-col">
+          <div class="flex flex-row items-center gap-2 ">
+            <AlignLeft class="w-5 h-5 text-center text-gray-700" />
+            <span class="font-medium text-gray-700">Description</span>
+          </div>
+          <textarea v-model="localCard.description" placeholder="Description"
+            class="w-full p-2 my-2 border rounded resize-none field-sizing-content max-h-70">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- right -->
+      <div class="w-1/3 flex-1 flex-row">
+        <!-- comments -->
+        <div class="justify-between items-top mb-4 gap-4">
+          <textarea v-model="newCommentText" placeholder="Comments"
+            class="w-full p-2 my-2 border rounded resize-none min-h-20">
+          </textarea>
+          <button @click="handleSaveComment()"
+            class="bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            :disabled="!newCommentText.trim()">
+            Save
+          </button>
+        </div>
+        <div v-if="boardStore.editingCard">
+          <div v-for="comments in boardStore.getCommentsByCardId(boardStore.editingCard.id)" :key="comments.id"
+            class="flex flex-row gap-2 mb-5">
+            <div class="h-full rounded-full border-2 border-gray-300 ">
+              <User class="w-6 h-6" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <div>
+                <span class="mr-2"> Usernamdwwwwwwwwwwe </span>
+                <span class="text-sm font-medium text-pretty"> {{ dateFormat(new Date(comments.time), 'd-m-y') }} </span>
+              </div>
+              <div  v-if="editingCommentId === comments.id">
+                <textarea class="w-full p-2 my-2 border rounded resize-none min-h-20 h-40 max-h-90" v-model="editingCommentText"></textarea>
+                <button class="bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed" :disabled="!editingCommentText.trim()" @click="handleUpdateComment">Save</button>
+                <button class="ml-2 cursor-pointer hover:bg-gray-100 p-2" @click="editingCommentId = null">cancel</button>
+              </div>
+              <div v-else>
+                <span> {{ comments.text }} </span>
+                <div class="flex flex-row gap-2">
+                  <span>React</span>
+                  <span class="cursor-pointer underline" @click="startEditComment(comments)">Edit</span>
+                  <span>Delete</span>
+                </div>
               </div>
             </div>
           </div>

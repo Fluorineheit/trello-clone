@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { List, Card, Label } from '@/types'
+import type { List, Card, Label, Comments } from '@/types'
 
 
 export const useBoardStore = defineStore('board', {
@@ -27,12 +27,16 @@ export const useBoardStore = defineStore('board', {
 
     searchQuery: '',
 
+    comments: [
+      { id: 1, cardId: 1, text: 'ijdiawnd keren amat bosss', time: '2023-10-01T14:30:00', },
+      { id: 2, cardId: 2, text: 'ijdiawnd keren amat bosss niceee', time: '2025-06-01T14:30:00', },
+    ] as Comments[],
+
     labels: [
       { id: 1, name: 'Feature', color: '#bfdbfe' },
       { id: 2, name: 'Bug', color: '#fecaca' },
       { id: 3, name: 'Urgent', color: '#fefcbf' },
     ] as Label[],
-
 
     isModalOpen: false,
     editingCardIndex: null as number | null,
@@ -65,6 +69,14 @@ export const useBoardStore = defineStore('board', {
             listId: list.id
           }))
       )
+    },
+
+    getCommentsByCardId: (state) => (cardId: number): Comments[] => {
+      return state.comments.filter(comment => comment.cardId === cardId)
+    },
+
+    getCommentCountByCardId: (state) => (cardId: number): number => {
+      return state.comments.filter(comment => comment.cardId === cardId).length
     },
   },
 
@@ -118,18 +130,18 @@ export const useBoardStore = defineStore('board', {
       }
     },
 
-    unassignedLabelFromCard(cardId: number, labelId: number){
-      for(const list of this.lists){
-        const card = list.cards.find(c => c.id === cardId)
-        if (card && Array.isArray(card.labelIds)) {
-          const index = card.labelIds.indexOf(labelId)
-            if (index !== -1) {
-              card.labelIds.splice(index, 1)
-            }
-            return
-        }
-      }
-    },
+    // unassignedLabelFromCard(cardId: number, labelId: number){
+    //   for(const list of this.lists){
+    //     const card = list.cards.find(c => c.id === cardId)
+    //     if (card && Array.isArray(card.labelIds)) {
+    //       const index = card.labelIds.indexOf(labelId)
+    //         if (index !== -1) {
+    //           card.labelIds.splice(index, 1)
+    //         }
+    //         return
+    //     }
+    //   }
+    // },
 
     createlabel(labelData: { name: string, color: string }){
       const existingIds = this.labels.map(l=>l.id)
@@ -150,6 +162,28 @@ export const useBoardStore = defineStore('board', {
       if(index !== -1){
         this.labels[index] = updatedLabels;
       }
-    }
+    },
+
+    addComment(commentsData: {cardId: number, text: string}){
+      const newDate = new Date().toISOString()
+      const newId = Math.max(0, ...this.comments.map((l) => l.id)) + 1
+      const newComments = {
+        id: newId,
+        cardId: commentsData.cardId,
+        text: commentsData.text,
+        time: newDate,
+      }
+
+      this.comments.push(newComments)
+    },
+
+    editComment(commentId: number, newText: string){
+      const commentToUpdate = this.comments.find(comment => comment.id === commentId)
+
+      if(commentToUpdate){
+        commentToUpdate.text = newText
+      }
+    },
+
   },
 })

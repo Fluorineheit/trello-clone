@@ -7,6 +7,13 @@ export interface Card {
   color: string;
 }
 
+export interface Comments {
+  id: number;
+  cardId: number;
+  text: string;
+  time: string;
+}
+
 export interface Label {
   id: number;
   name: string;

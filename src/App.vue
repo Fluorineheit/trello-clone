@@ -3,7 +3,7 @@ import draggable from 'vuedraggable'
 import ModalDialog from './components/ModalDialog.vue'
 import NavBar from './components/NavBar.vue'
 import { useBoardStore } from './stores/boardStores'
-import { Clock } from 'lucide-vue-next'
+import { Clock, MessageCircle } from 'lucide-vue-next'
 import { dateFormat } from './utils/dateFormat'
 
 const boardStore = useBoardStore()
@@ -33,13 +33,23 @@ const boardStore = useBoardStore()
               <p class="text-sm text-gray-400">{{ element.description.length > 60 ? element.description.substring(0, 60)
                 +
                 '...' : element.description }}</p>
-              <div v-if="element.dueDate"
-                class="flex w-fit flex-row items-center gap-2 text-sm text-gray-800 mt-1 bg-gray-200 p-1 rounded"
-                :class="{
-                  'bg-red-200 text-red-700': new Date(element.dueDate) <= new Date()
-                }">
-                <Clock class="w-4 h-4" />
-                <span>{{ dateFormat(new Date(element.dueDate), 'd-m') }}</span>
+              <div class="flex flex-row gap-2 items-center">
+                <!-- due date -->
+                <div v-if="element.dueDate"
+                  class="flex w-fit flex-row items-center gap-2 text-sm text-gray-800 mt-1 bg-gray-200 p-1 rounded"
+                  :class="{
+                    'bg-red-200 text-red-700': new Date(element.dueDate) <= new Date()
+                  }">
+                  <Clock class="w-4 h-4" />
+                  <span>{{ dateFormat(new Date(element.dueDate), 'd-m') }}</span>
+                </div>
+                <!-- comments count -->
+                <div v-if="boardStore.getCommentCountByCardId(element.id)"
+                  class="flex w-fit flex-row items-center gap-2 text-sm text-gray-800 mt-1 bg-gray-200 p-1 rounded"
+                >
+                <MessageCircle class="w-4 h-4"/>
+                <span>{{ boardStore.getCommentCountByCardId(element.id) }} </span>
+                </div>
               </div>
             </div>
           </template>

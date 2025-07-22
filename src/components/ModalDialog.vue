@@ -2,7 +2,7 @@
 import { ref, watch, nextTick, computed } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import type { Card, Label } from '@/types';
-import { AlignLeft, ChevronLeftIcon, Clock, Palette, Pencil, Tag, User } from 'lucide-vue-next';
+import { AlignLeft, ChevronLeftIcon, Clock, Palette, Pencil, Plus, Tag, User } from 'lucide-vue-next';
 import { useBoardStore } from '@/stores/boardStores';
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap';
 import VueDatePicker from '@vuepic/vue-datepicker';
@@ -123,12 +123,15 @@ function openEditLabelView(label: Label) {
 }
 
 const filteredLabels = computed(() => {
-  if (!labelSearchQuery.value) {
-    return boardStore.labels
+  if (!labelSearchQuery.value.trim()) {
+    return boardStore.labels;
   }
 
-  const found = boardStore.labels.find(label => label.name === labelSearchQuery.value.toLowerCase())
-  return found ? [found] : []
+  const searchQuery = labelSearchQuery.value.toLowerCase();
+
+  return boardStore.labels.filter(label =>
+    label.name.toLowerCase().includes(searchQuery)
+  );
 })
 
 function handleLabelSave() {
@@ -325,9 +328,9 @@ watch(isDatePickerOpen, (isOpen) => {
 <template>
   <div ref="targetModal" v-if="boardStore.isModalOpen" @keydown.esc="saveChanges"
     class="fixed inset-0 bg-black/30 flex items-center justify-center">
-    <div ref="targetCardModal" class="bg-white p-5 rounded max-w-5xl h-[80vh] justify-between w-full flex flex-row ">
+    <div ref="targetCardModal" class="bg-white p-5 rounded max-w-5xl h-[82vh] justify-between w-full flex flex-row ">
       <!-- left -->
-      <div class="w-2/3 flex flex-col gap-2 h-full overflow-y-auto overflow-x-hidden pr-4">
+      <div class="w-2/3 flex flex-col gap-2 h-full overflow-y-auto overflow-x-hidden pl-2">
         <!-- title -->
         <textarea v-model="localCard.title"
           ref="titleTextarea" placeholder="Title"
@@ -337,8 +340,8 @@ watch(isDatePickerOpen, (isOpen) => {
         <div class="flex flex-row justify-start align-middle items-center mb-2 gap-2">
           <!-- datepicker if true -->
           <button v-if="localCard.dueDate" @click="isDatePickerOpen = !isDatePickerOpen">
-            <VueDatePicker teleport-center :action-row="{ showNow: true, showCancel: false }" now-button-label="Current"
-              :format="dateFormat" ref="datePickerRef" :clearable="false" v-model="localCard.dueDate" class="w-full" />
+            <VueDatePicker  :action-row="{ showNow: true, showCancel: false }" now-button-label="Current"
+              :format="dateFormat" ref="datePickerRef" :clearable="false" v-model="localCard.dueDate" class="w-full top-0" />
           </button>
           <div class="flex flex-row gap-2">
             <!-- color -->
@@ -370,22 +373,21 @@ watch(isDatePickerOpen, (isOpen) => {
                 <Clock class="w-5 h-5" />
                 Dates
               </button>
-              <div v-if="isDatePickerOpen" class="absolute z-10 w-full mt-1 bg-white p-2 border rounded shadow-lg">
+              <div v-if="isDatePickerOpen" class="absolute z-10 w-full top-0 bg-white p-2 border rounded shadow-lg">
                 <!-- <input type="date" v-model="localCard.dueDate" class="w-full p-2 border rounded" /> -->
                 <VueDatePicker :action-row="{ showNow: true, showCancel: false }" now-button-label="Current"
-                  :format="dateFormat" ref="datePickerRef" v-model="localCard.dueDate" class="w-full mt-2" />
+                  :format="dateFormat" ref="datePickerRef" v-model="localCard.dueDate" class="w-full top-0" />
               </div>
             </div>
 
             <!-- labels -->
             <div class="relative" ref="labelsPickerPanel">
-              <button @click="isLabelsPanelOpen = !isLabelsPanelOpen"
+              <button v-if="!localCard.labelIds || localCard.labelIds.length === 0" @click="isLabelsPanelOpen = !isLabelsPanelOpen"
                 class="w-full max-h-[450px] bg-gray-200 hover:bg-gray-300 p-2 rounded text-left flex items-center gap-2">
                 <Tag class="w-5 h-5" />Labels
               </button>
-
               <div ref="labelModal" v-if="isLabelsPanelOpen"
-                class="absolute  z-10 max-h-100 w-80 bg-white p-4 overflow-y-auto border rounded shadow-lg mt-auto mb-4">
+                class="absolute z-10 max-h-100 w-80 top-0 mt-16 -translate-y-16 -translate-x-1/2 bg-white p-4 overflow-y-auto border rounded shadow-lg  mb-4">
                 <div v-if="labelPanelView === 'list'">
                   <input class="block w-full p-1 text-sm text-gray-900 border-2 mb-2 border-gray-500 " type="text"
                     v-model="labelSearchQuery">
@@ -430,7 +432,7 @@ watch(isDatePickerOpen, (isOpen) => {
                   </div>
                 </div>
                 <button v-if="labelPanelView !== 'list'"
-                  class="w-20 h-full p-2 text-gray-800 cursor-pointer font-medium rounded bg-blue-400 hover:bg-blue-500 mt-2"
+                  class="w-20 h-full p-2 text-white cursor-pointer font-medium rounded bg-blue-400 hover:bg-blue-500 mt-2"
                   @click="handleLabelSave()">
                   Create
                 </button>
@@ -441,27 +443,30 @@ watch(isDatePickerOpen, (isOpen) => {
 
         <div v-if="(localCard.labelIds && localCard.labelIds.length > 0)">
           <div class="flex flex-row items-center gap-2">
-            <AlignLeft class="w-5 h-5 text-center text-gray-700" />
+            <Tag class="w-5 h-5 text-center text-gray-700" />
             <span class="font-medium text-gray-700">Labels</span>
           </div>
-          <div class="flex flex-row gap-2 my-2 ">
-            <div v-for="label in filteredLabels" :key="label.id">
-              <span class="w-full h-9 rounded py-1 px-2 text-gray-700 font-medium align-middle text-center"
-                :style="{ backgroundColor: label.color }">
-                {{ label.name }}
+          <div class="flex flex-row items-center gap-2 my-2">
+            <div v-for="labelId in localCard.labelIds" :key="labelId">
+              <span class="rounded p-2 text-gray-700 font-medium align-middle text-center"
+              :style="{ backgroundColor: boardStore.labels.find(l => l.id === labelId)?.color }">
+              {{ boardStore.labels.find(l => l.id === labelId)?.name }}
               </span>
             </div>
-          </div>
+            <button @click="isLabelsPanelOpen = !isLabelsPanelOpen" class="flex items-center p-2 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+              <Plus class="w-5 h-5"/>
+            </button>
+            </div>
         </div>
 
         <!-- desc -->
-        <div class="w-2/3 flex flex-col">
+        <div class="w-2/3 flex flex-col relative">
           <div class="flex flex-row items-center gap-2 ">
             <AlignLeft class="w-5 h-5 text-center text-gray-700" />
             <span class="font-medium text-gray-700">Description</span>
           </div>
           <textarea v-model="currentDescriptionDrafts" placeholder="Description"
-            class="w-full p-2 my-2 border rounded resize-none field-sizing-content min-h-32">
+            class="w-100 p-2 my-2 border rounded resize-none field-sizing-content min-h-32">
           </textarea>
           <div class="flex flex-row gap-2" v-if="currentDescriptionDrafts !== boardStore.editingCard?.description">
             <button @click="handleSaveDescription()"
@@ -476,7 +481,7 @@ watch(isDatePickerOpen, (isOpen) => {
       </div>
 
       <!-- right -->
-      <div class="w-1/3 flex-1 flex-row h-full overflow-y-auto overflow-x-hidden pr-4">
+      <div class="w-1/3 flex-1 flex-row h-full overflow-y-auto overflow-x-hidden px-2 relative">
         <!-- comments -->
         <div class="justify-between items-top mb-4 gap-4">
           <textarea v-model="currentCommentDraft" placeholder="Comments"

@@ -21,7 +21,7 @@ export const useBoardStore = defineStore('board', {
       {
         id: 3,
         title: 'Done',
-        cards: [{ id: 8, title: 'Tugas 3', description: 'Deskripsi tugas 3', labelIds: [2, 3] }],
+        cards: [{ id: 8, title: 'Tugas 3', description: 'Deskripsi tugas 3' }],
       },
     ] as List[],
 

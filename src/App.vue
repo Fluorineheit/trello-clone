@@ -13,7 +13,7 @@ const boardStore = useBoardStore()
 <template>
   <NavBar />
   <main class="p-5 font-sans bg-[url(../bg.webp)] bg-cover bg-center min-h-screen">
-    <div class="flex gap-5 py-5 overflow-x-auto mt-10">
+    <div class="flex gap-5 pt-5 overflow-x-auto overflow-y-hidden mt-6">
       <div :key="list.id" v-for="list in boardStore.lists"
         class="bg-gray-100 p-5 rounded-lg max-h-[90vh] w-[280px] flex flex-col">
         <h2 class="font-medium text-md text-gray-500">{{ list.title }}</h2>
@@ -26,7 +26,7 @@ const boardStore = useBoardStore()
                 <span v-for="labelId in element.labelIds" :key="labelId"
                   class="flex flex-wrap text-sm rounded font-medium text-gray-800 p-1 gap-1 mb-2 "
                   :style="{ backgroundColor: boardStore.labels.find(l => l.id === labelId)?.color }">
-                  {{boardStore.labels.find(l => l.id === labelId)?.name}}
+                    {{boardStore.labels.find(l => l.id === labelId)?.name}}
                 </span>
               </div>
               <span class="text-md font-medium text-gray-600">{{ element.title }}</span>

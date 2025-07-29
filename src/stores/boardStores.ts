@@ -4,6 +4,8 @@ import type { List, Card, Label, Comments } from '@/types'
 
 export const useBoardStore = defineStore('board', {
   state: () => ({
+
+    // Default values for the board
     lists: [
       {
         id: 1,
@@ -28,8 +30,8 @@ export const useBoardStore = defineStore('board', {
     searchQuery: '',
 
     comments: [
-      { id: 1, cardId: 1, text: 'ijdiawnd keren amat bosss', time: '2023-10-01T14:30:00', },
-      { id: 2, cardId: 2, text: 'ijdiawnd keren amat bosss niceee', time: '2025-06-01T14:30:00', },
+      { id: 1, cardId: 1, text: 'ijdiawnd keren amat bosss', time: '2023-10-01T14:30:00'},
+      { id: 2, cardId: 2, text: 'ijdiawnd keren amat bosss niceee', time: '2025-06-01T14:30:00'},
     ] as Comments[],
 
     labels: [
@@ -48,7 +50,7 @@ export const useBoardStore = defineStore('board', {
       if (state.editingCardIndex === null || state.editingListIndex === null) {
         return null
       }
-      const list = state.lists.find((l) => l.id === state.editingListIndex)
+      const list: List | undefined = state.lists.find((l: List) => l.id === state.editingListIndex)
       return list?.cards.find((c) => c.id === state.editingCardIndex) || null
     },
 
@@ -61,22 +63,22 @@ export const useBoardStore = defineStore('board', {
         return []
       }
       const query = state.searchQuery.toLowerCase()
-      return state.lists.flatMap(list =>
+      return state.lists.flatMap((list: List) =>
         list.cards
-          .filter((card) => card.title.toLowerCase().includes(query))
-          .map((card) => ({
-            card: card,
-            listId: list.id
+          .filter((card: Card) => card.title.toLowerCase().includes(query))
+          .map((card: Card): { card: Card; listId: number } => ({
+        card: card,
+        listId: list.id
           }))
       )
     },
 
     getCommentsByCardId: (state) => (cardId: number): Comments[] => {
-      return state.comments.filter(comment => comment.cardId === cardId)
+      return state.comments.filter((comment: Comments) => comment.cardId === cardId)
     },
 
     getCommentCountByCardId: (state) => (cardId: number): number => {
-      return state.comments.filter(comment => comment.cardId === cardId).length
+      return state.comments.filter((comment: Comments) => comment.cardId === cardId).length
     },
   },
 
@@ -97,7 +99,7 @@ export const useBoardStore = defineStore('board', {
       if (!cardData.id) return
 
       for (const list of this.lists) {
-        const cardIndex = list.cards.findIndex((c) => c.id === cardData.id)
+        const cardIndex = list.cards.findIndex(c => c.id === cardData.id)
 
         if (cardIndex !== -1) {
           list.cards[cardIndex] = { ...list.cards[cardIndex], ...cardData }
@@ -109,9 +111,9 @@ export const useBoardStore = defineStore('board', {
     addCard(newCard: Card) {
       if (!this.editingListIndex) return
 
-      const list = this.lists.find((l) => l.id === this.editingListIndex)
+      const list = this.lists.find((l: List) => l.id === this.editingListIndex)
       if (list) {
-        const newId = Math.max(0, ...this.lists.flatMap((l) => l.cards.map((c) => c.id))) + 1
+        const newId = Math.max(0, ...this.lists.flatMap((l: List) => l.cards.map((c) => c.id))) + 1
         list.cards.push({ ...newCard, id: newId })
       }
     },
@@ -144,7 +146,7 @@ export const useBoardStore = defineStore('board', {
     // },
 
     createlabel(labelData: { name: string, color: string }){
-      const existingIds = this.labels.map(l=>l.id)
+      const existingIds = this.labels.map(l => l.id)
 
       const highestId = Math.max(0, ...existingIds)
 
@@ -166,7 +168,7 @@ export const useBoardStore = defineStore('board', {
 
     addComment(commentsData: {cardId: number, text: string}){
       const newDate = new Date().toISOString()
-      const newId = Math.max(0, ...this.comments.map((l) => l.id)) + 1
+      const newId = Math.max(0, ...this.comments.map(l => l.id)) + 1
       const newComments = {
         id: newId,
         cardId: commentsData.cardId,
@@ -178,12 +180,13 @@ export const useBoardStore = defineStore('board', {
     },
 
     editComment(commentId: number, newText: string){
-      const commentToUpdate = this.comments.find(comment => comment.id === commentId)
+      const commentToUpdate = this.comments.find((comment: Comments) => comment.id === commentId)
 
       if(commentToUpdate){
         commentToUpdate.text = newText
       }
     },
-
   },
+  persist: true
 })
+

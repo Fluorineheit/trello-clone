@@ -104,7 +104,7 @@ const labelColors = [
 
 // function for labels
 function openCrateLabelView() {
-  const usedColor = new Set(boardStore.labels.map(label => label.color));
+  const usedColor = new Set(boardStore.labels.map((label: Label) => label.color));
 
   const firstAvailableColor = labelColors.find(color => !usedColor.has(color.hex))
 
@@ -129,7 +129,7 @@ const filteredLabels = computed(() => {
 
   const searchQuery = labelSearchQuery.value.toLowerCase();
 
-  return boardStore.labels.filter(label =>
+  return boardStore.labels.filter((label: Label) =>
     label.name.toLowerCase().includes(searchQuery)
   );
 })
@@ -148,7 +148,7 @@ function handleLabelSave() {
     });
   } else {
     const isDuplicate = boardStore.labels.some(
-      (label) =>
+      (label: Label) =>
         label.name === newLabel.value.name &&
         label.color === newLabel.value.color
     )
@@ -449,8 +449,8 @@ watch(isDatePickerOpen, (isOpen) => {
           <div class="flex flex-row items-center gap-2 my-2">
             <div v-for="labelId in localCard.labelIds" :key="labelId">
               <span class="rounded p-2 text-gray-700 font-medium align-middle text-center"
-              :style="{ backgroundColor: boardStore.labels.find(l => l.id === labelId)?.color }">
-              {{ boardStore.labels.find(l => l.id === labelId)?.name }}
+              :style="{ backgroundColor: boardStore.labels.find((l: Label) => l.id === labelId)?.color }">
+              {{ boardStore.labels.find((l: Label) => l.id === labelId)?.name }}
               </span>
             </div>
             <button @click="isLabelsPanelOpen = !isLabelsPanelOpen" class="flex items-center p-2 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
@@ -483,7 +483,7 @@ watch(isDatePickerOpen, (isOpen) => {
       <!-- right -->
       <div class="w-1/3 flex-1 flex-row h-full overflow-y-auto overflow-x-hidden px-2 relative">
         <!-- comments -->
-        <div class="justify-between items-top mb-4 gap-4">
+        <div v-if="boardStore.modalMode === 'edit'" class="justify-between items-top mb-4 gap-4">
           <textarea v-model="currentCommentDraft" placeholder="Comments"
             class="whitespace-pre-wrap border-2 focus:border-blue-400 field-sizing-content w-full p-2 my-2 rounded resize-none min-h-20 focus:outline-2 focus:outline-blue-400">
           </textarea>
